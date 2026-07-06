@@ -1,0 +1,115 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}СКС Казань{% endblock %} — Завод металлических сеток</title>
+    <meta name="description" content="{% block meta_description %}СКС Казань — производство и продажа металлических строительных сеток в Казани, район Высокая Гора{% endblock %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <script>
+        (function () {
+            if (localStorage.getItem('theme') === 'light') {
+                document.documentElement.classList.add('theme-light');
+            }
+        })();
+    </script>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="page-bg"></div>
+    <div class="mesh-overlay" aria-hidden="true"></div>
+
+    <header class="site-header" id="header">
+        <div class="header-main">
+            <div class="container header-main-inner">
+                <div class="header-brand">
+                    <a href="{% url 'catalog:home' %}" class="logo">
+                        <span class="logo-icon">
+                            <svg viewBox="0 0 40 40" fill="none"><rect x="2" y="2" width="36" height="36" rx="4" stroke="currentColor" stroke-width="2"/><path d="M2 10h36M2 20h36M2 30h36M10 2v36M20 2v36M30 2v36" stroke="currentColor" stroke-width="1.5" opacity=".6"/></svg>
+                        </span>
+                        <span class="logo-text">СКС <span class="accent">Казань</span></span>
+                    </a>
+                    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Сменить фон" title="Сменить фон">
+                        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <path d="M21 14.5A8.5 8.5 0 1112.5 4a6.5 6.5 0 008.5 10.5z" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <span class="theme-toggle-label">Фон</span>
+                    </button>
+                </div>
+
+                <nav class="main-nav" id="mainNav">
+                    <a href="{% url 'catalog:home' %}" class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}">Главная</a>
+                    <div class="nav-dropdown">
+                        <button class="nav-link nav-dropdown-toggle" type="button">
+                            Продукция
+                            <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                        </button>
+                        <div class="nav-dropdown-menu">
+                            {% for cat in nav_categories %}
+                            <a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <a href="{% url 'catalog:docs' %}" class="nav-link">Тех. документация</a>
+                    <a href="{% url 'catalog:contracts' %}" class="nav-link">Договоры и реквизиты</a>
+                    <a href="{% url 'catalog:contacts' %}" class="nav-link">Контакты</a>
+                </nav>
+
+                <div class="header-actions">
+                    <button class="burger" id="burgerBtn" aria-label="Меню" type="button">
+                        <span></span><span></span><span></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main>{% block content %}{% endblock %}</main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="{% url 'catalog:home' %}" class="logo logo-footer">
+                        <span class="logo-text">СКС <span class="accent">Казань</span></span>
+                    </a>
+                    <p>Производство металлических сеток. Поставки по всей России.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Навигация</h4>
+                    <a href="{% url 'catalog:home' %}">Главная</a>
+                    <a href="{% url 'catalog:docs' %}">Тех. документация</a>
+                    <a href="{% url 'catalog:contracts' %}">Договоры и реквизиты</a>
+                    <a href="{% url 'catalog:contacts' %}">Контакты</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Продукция</h4>
+                    {% for cat in nav_categories %}
+                    <a href="{{ cat.get_absolute_url }}">{{ cat.name }}</a>
+                    {% endfor %}
+                </div>
+                <div class="footer-col">
+                    <h4>Контакты</h4>
+                    <p>г. Казань, Высокая Гора</p>
+                    <a href="mailto:info@sks-kazan.ru">info@sks-kazan.ru</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>© 2010—2026 «СКС Казань»</span>
+                <a href="#">Политика конфиденциальности</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Контакты{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumbs reveal"><a href="{% url 'catalog:home' %}">Главная</a><span>/</span><span>Контакты</span></nav>
+        <h1 class="reveal">Контакты</h1>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="contacts-info reveal">
+            <div class="contact-office">
+                <h3>Производство и офис</h3>
+                <p>г. Казань, Высокая Гора</p>
+                <p>Директор: Гарипов Рустем Рафаэлович</p>
+            </div>
+            <div class="contact-office">
+                <h3>E-mail</h3>
+                <a href="mailto:info@sks-kazan.ru">info@sks-kazan.ru</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

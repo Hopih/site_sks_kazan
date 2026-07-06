@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Договоры и реквизиты{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumbs reveal"><a href="{% url 'catalog:home' %}">Главная</a><span>/</span><span>Договоры и реквизиты</span></nav>
+        <h1 class="reveal">Договоры и реквизиты</h1>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="info-grid">
+            <div class="info-card reveal">
+                <h3>Реквизиты организации</h3>
+                <dl class="info-list">
+                    <dt>Наименование</dt><dd>ООО «СКС Казань»</dd>
+                    <dt>Директор</dt><dd>Гарипов Рустем Рафаэлович</dd>
+                    <dt>ИНН</dt><dd>0000000000</dd>
+                    <dt>КПП</dt><dd>000000000</dd>
+                    <dt>ОГРН</dt><dd>0000000000000</dd>
+                    <dt>Юр. адрес</dt><dd>г. Казань, Высокая Гора</dd>
+                    <dt>Р/с</dt><dd>40702810000000000000</dd>
+                    <dt>Банк</dt><dd>ПАО «Сбербанк»</dd>
+                    <dt>БИК</dt><dd>044525225</dd>
+                </dl>
+            </div>
+            <div class="info-card reveal delay-1">
+                <h3>Образцы документов</h3>
+                <ul class="doc-links">
+                    <li><a href="#">Договор поставки (типовой)</a></li>
+                    <li><a href="#">Договор оказания услуг</a></li>
+                    <li><a href="#">Карточка предприятия</a></li>
+                    <li><a href="#">Счёт на оплату (образец)</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

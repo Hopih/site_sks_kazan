@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Техническая документация{% endblock %}
+
+{% block content %}
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumbs reveal"><a href="{% url 'catalog:home' %}">Главная</a><span>/</span><span>Тех. документация</span></nav>
+        <h1 class="reveal">Техническая документация</h1>
+        <p class="page-lead reveal delay-1">Сертификаты, паспорта качества и нормативные документы на продукцию СКС Казань</p>
+    </div>
+</section>
+<section class="section">
+    <div class="container">
+        <div class="docs-grid">
+            <div class="doc-card reveal"><div class="doc-icon">📄</div><h3>Сертификат соответствия</h3><p>Действующий сертификат на металлическую сетку</p><span class="doc-link">Скачать PDF</span></div>
+            <div class="doc-card reveal delay-1"><div class="doc-icon">📋</div><h3>Паспорт качества</h3><p>Образец паспорта качества на сварную сетку</p><span class="doc-link">Скачать PDF</span></div>
+            <div class="doc-card reveal delay-2"><div class="doc-icon">📐</div><h3>Технические условия (ТУ)</h3><p>ТУ на производство металлических сеток</p><span class="doc-link">Скачать PDF</span></div>
+            <div class="doc-card reveal delay-3"><div class="doc-icon">✓</div><h3>ГОСТ и нормативы</h3><p>Список применяемых ГОСТов и стандартов</p><span class="doc-link">Скачать PDF</span></div>
+        </div>
+    </div>
+</section>
+{% endblock %}

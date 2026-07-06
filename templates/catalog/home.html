@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="hero" id="hero">
+    <div class="hero-slider">
+        {% for cat in featured_categories %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}" data-slide>
+            <div class="container hero-inner">
+                <div class="hero-content reveal">
+                    <span class="hero-badge">От производителя</span>
+                    <h1>{{ cat.name }}</h1>
+                    <p class="hero-tagline">{{ cat.hero_tagline|default:cat.short_description }}</p>
+                    {% if cat.hero_features_list %}
+                    <ul class="hero-features">
+                        {% for feature in cat.hero_features_list %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                    <div class="hero-actions">
+                        <a href="{{ cat.get_absolute_url }}" class="hero-link">
+                            Смотреть каталог
+                            <svg width="16" height="16" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div class="hero-visual reveal delay-1">
+                    <div class="hero-mesh-card">
+                        <div class="mesh-viewer mesh-viewer-hero" data-mesh-viewer data-size="hero" data-mesh-type="{{ cat.mesh_type }}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="hero-controls container">
+        <div class="hero-dots">
+            {% for cat in featured_categories %}
+            <button class="hero-dot {% if forloop.first %}active{% endif %}" data-dot="{{ forloop.counter0 }}" aria-label="{{ cat.name }}"></button>
+            {% endfor %}
+        </div>
+        <div class="hero-arrows">
+            <button class="hero-arrow" id="heroPrev" aria-label="Назад" type="button">‹</button>
+            <button class="hero-arrow" id="heroNext" aria-label="Вперёд" type="button">›</button>
+        </div>
+    </div>
+</section>
+
+<section class="section categories-strip">
+    <div class="container">
+        <div class="categories-scroll">
+            {% for cat in categories %}
+            <a href="{{ cat.get_absolute_url }}" class="category-chip reveal">
+                <span class="chip-icon">◈</span>
+                <span>{{ cat.name }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section popular-section">
+    <div class="container">
+        <div class="section-header reveal">
+            <span class="section-label">Каталог</span>
+            <h2>Популярные товары</h2>
+        </div>
+        <div class="products-grid">
+            {% for product in popular_products %}
+            <article class="product-card reveal">
+                <a href="{{ product.get_absolute_url }}" class="product-card-link">
+                    <div class="product-card-visual">
+                        <div class="mesh-viewer" data-mesh-viewer data-size="small" data-mesh-type="{{ product.category.mesh_type }}"></div>
+                        <span class="product-category">{{ product.category.name }}</span>
+                    </div>
+                    <div class="product-card-body">
+                        <h3>{{ product.name }}</h3>
+                    </div>
+                </a>
+            </article>
+            {% empty %}
+            <p class="empty-note">Товары скоро появятся в каталоге.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="section promo-cards">
+    <div class="container promo-grid">
+        {% for cat in categories %}
+        {% if not cat.is_featured %}
+        <a href="{{ cat.get_absolute_url }}" class="promo-card reveal">
+            <div class="promo-card-bg"></div>
+            <h3>{{ cat.name }}</h3>
+            <p>{{ cat.short_description }}</p>
+            <span class="promo-link">Подробнее →</span>
+        </a>
+        {% endif %}
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section about-section" id="about">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-content reveal">
+                <span class="section-label">О заводе</span>
+                <h2>СКС Казань — производство металлических сеток</h2>
+                <p>СКС Казань — предприятие по производству металлических строительных сеток, расположенное в городе Казань, район Высокая Гора. Мы выпускаем продукцию высшего качества и поставляем металлические сетки по территории Республики Татарстан и всей России.</p>
+                <p>Собственное производство, современное оборудование и широкий ассортимент — основные преимущества СКС Казань.</p>
+                <p>Также мы предлагаем вязальную проволоку — изделие с высоким коэффициентом растяжения и повышенной прочностью, незаменимое при строительстве и ремонтных работах.</p>
+            </div>
+            <div class="stats-grid reveal delay-1">
+                <div class="stat-card"><span class="stat-num" data-count="15">0</span><span class="stat-label">лет на рынке</span></div>
+                <div class="stat-card"><span class="stat-num" data-count="500">0</span><span class="stat-label">видов продукции</span></div>
+                <div class="stat-card"><span class="stat-num" data-count="10000">0</span><span class="stat-label">довольных клиентов</span></div>
+                <div class="stat-card"><span class="stat-num" data-count="1">0</span><span class="stat-label">производство в Казани</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section features-section">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card reveal">
+                <div class="feature-icon">◆</div>
+                <h3>Выгодные условия и высокое качество</h3>
+                <p>Прямые поставки с завода без посредников</p>
+            </div>
+            <div class="feature-card reveal delay-1">
+                <div class="feature-icon">◆</div>
+                <h3>Нестандартные размеры</h3>
+                <p>Изготовление сетки любых размеров под заказ</p>
+            </div>
+            <div class="feature-card reveal delay-2">
+                <div class="feature-icon">◆</div>
+                <h3>Материал заказчика</h3>
+                <p>Работаем с материалом, предоставленным клиентом</p>
+            </div>
+            <div class="feature-card reveal delay-3">
+                <div class="feature-icon">◆</div>
+                <h3>Сертифицированная продукция</h3>
+                <p>Вся продукция соответствует ТУ и ГОСТ</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script type="module" src="{% static 'js/mesh-viewer.js' %}"></script>
+{% endblock %}
