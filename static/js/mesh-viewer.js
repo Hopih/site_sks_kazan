@@ -254,6 +254,8 @@ function createPedestal(scene) {
 }
 
 function initMeshViewer(container) {
+    container.classList.add('is-loading');
+
     const sizeMap = {
         hero: [440, 440],
         large: [560, 480],
@@ -274,6 +276,7 @@ function initMeshViewer(container) {
     camera.lookAt(...camCfg.target);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(0x000000, 0);
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -328,6 +331,7 @@ function initMeshViewer(container) {
     renderer.domElement.addEventListener('touchend', onPointerUp);
 
     const clock = new THREE.Clock();
+    let isReady = false;
 
     function animate() {
         requestAnimationFrame(animate);
@@ -343,6 +347,11 @@ function initMeshViewer(container) {
         }
 
         renderer.render(scene, camera);
+
+        if (!isReady) {
+            isReady = true;
+            container.classList.remove('is-loading');
+        }
     }
     animate();
 

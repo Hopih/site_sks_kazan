@@ -7,12 +7,8 @@
 <section class="product-hero">
     <div class="container hero-inner">
         <div class="hero-content reveal">
-            <nav class="breadcrumbs">
-                <a href="{% url 'catalog:home' %}">Главная</a>
-                <span>/</span>
-                <a href="{{ product.category.get_absolute_url }}">{{ product.category.name }}</a>
-                <span>/</span>
-                <span>{{ product.name|truncatechars:40 }}</span>
+            <nav class="breadcrumbs" aria-label="Навигация">
+                {% include "includes/breadcrumbs.html" %}
             </nav>
             <span class="section-label">{{ product.category.name }}</span>
             <h1>{{ product.name }}</h1>

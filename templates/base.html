@@ -6,13 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}СКС Казань{% endblock %} — Завод металлических сеток</title>
     <meta name="description" content="{% block meta_description %}СКС Казань — производство и продажа металлических строительных сеток в Казани, район Высокая Гора{% endblock %}">
+    <meta name="theme-color" content="#6ec0f0">
+    <link rel="icon" href="{% static 'img/favicon.svg' %}" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
     <script>
         (function () {
-            if (localStorage.getItem('theme') === 'light') {
+            if (localStorage.getItem('theme') !== 'dark') {
                 document.documentElement.classList.add('theme-light');
             }
         })();
@@ -119,6 +121,12 @@
             </div>
         </div>
     </footer>
+
+    <button class="back-to-top" id="backToTop" type="button" aria-label="Наверх">
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 19V5M12 5l-6 6M12 5l6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+    </button>
 
     <script src="{% static 'js/main.js' %}"></script>
     {% block extra_js %}{% endblock %}

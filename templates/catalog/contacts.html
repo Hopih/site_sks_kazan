@@ -5,7 +5,9 @@
 {% block content %}
 <section class="page-hero">
     <div class="container">
-        <nav class="breadcrumbs reveal"><a href="{% url 'catalog:home' %}">Главная</a><span>/</span><span>Контакты</span></nav>
+        <nav class="breadcrumbs reveal" aria-label="Навигация">
+            {% include "includes/breadcrumbs.html" %}
+        </nav>
         <h1 class="reveal">Контакты</h1>
     </div>
 </section>

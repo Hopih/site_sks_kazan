@@ -5,7 +5,9 @@
 {% block content %}
 <section class="page-hero">
     <div class="container">
-        <nav class="breadcrumbs reveal"><a href="{% url 'catalog:home' %}">Главная</a><span>/</span><span>Тех. документация</span></nav>
+        <nav class="breadcrumbs reveal" aria-label="Навигация">
+            {% include "includes/breadcrumbs.html" %}
+        </nav>
         <h1 class="reveal">Техническая документация</h1>
         <p class="page-lead reveal delay-1">Сертификаты, паспорта качества и нормативные документы на продукцию СКС Казань</p>
     </div>

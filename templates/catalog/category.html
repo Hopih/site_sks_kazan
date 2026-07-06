@@ -6,10 +6,8 @@
 {% block content %}
 <section class="page-hero">
     <div class="container">
-        <nav class="breadcrumbs reveal">
-            <a href="{% url 'catalog:home' %}">Главная</a>
-            <span>/</span>
-            <span>{{ category.name }}</span>
+        <nav class="breadcrumbs reveal" aria-label="Навигация">
+            {% include "includes/breadcrumbs.html" %}
         </nav>
         <h1 class="reveal">{{ category.name }}</h1>
         <p class="page-lead reveal delay-1">{{ category.description }}</p>

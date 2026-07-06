@@ -16,8 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('favicon.ico', RedirectView.as_view(url='/static/img/favicon.svg', permanent=False)),
     path('', include('catalog.urls')),
 ]
+
+handler404 = 'catalog.views.page_not_found'

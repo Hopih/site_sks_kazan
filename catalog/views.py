@@ -14,6 +14,7 @@ def category_detail(request, slug):
     return render(request, 'catalog/category.html', {
         'category': category,
         'products': category.products.all(),
+        'breadcrumbs': [{'label': category.name}],
     })
 
 def product_detail(request, category_slug, slug):
@@ -25,16 +26,32 @@ def product_detail(request, category_slug, slug):
     return render(request, 'catalog/product.html', {
         'product': product,
         'related_products': Product.objects.filter(category=product.category).exclude(pk=product.pk)[:4],
+        'breadcrumbs': [
+            {'label': product.category.name, 'url': product.category.get_absolute_url()},
+            {'label': product.name},
+        ],
     })
 
 
 def docs(request):
-    return render(request, 'catalog/docs.html')
+    return render(request, 'catalog/docs.html', {
+        'breadcrumbs': [{'label': 'Тех. документация'}],
+    })
 
 
 def contracts(request):
-    return render(request, 'catalog/contracts.html')
+    return render(request, 'catalog/contracts.html', {
+        'breadcrumbs': [{'label': 'Договоры и реквизиты'}],
+    })
 
 
 def contacts(request):
-    return render(request, 'catalog/contacts.html')
+    return render(request, 'catalog/contacts.html', {
+        'breadcrumbs': [{'label': 'Контакты'}],
+    })
+
+
+def page_not_found(request, exception):
+    return render(request, '404.html', {
+        'breadcrumbs': [{'label': '404'}],
+    }, status=404)
