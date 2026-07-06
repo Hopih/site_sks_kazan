@@ -21,7 +21,7 @@
             <article class="product-card reveal">
                 <a href="{{ product.get_absolute_url }}" class="product-card-link">
                     <div class="product-card-visual">
-                        <div class="mesh-viewer" data-mesh-viewer data-size="small" data-mesh-type="{{ product.category.mesh_type }}"></div>
+                        {% include "includes/product_visual.html" with product=product size="small" %}
                     </div>
                     <div class="product-card-body">
                         <h3>{{ product.name }}</h3>

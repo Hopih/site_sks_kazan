@@ -1,0 +1,6 @@
+{% load static %}
+{% if category.hero_image %}
+<img src="{% static category.hero_image %}" alt="{{ category.name }}" class="product-preview-img product-preview-img-hero">
+{% else %}
+<div class="mesh-viewer mesh-viewer-hero" data-mesh-viewer data-size="hero" data-mesh-type="{{ category.mesh_type }}"></div>
+{% endif %}
