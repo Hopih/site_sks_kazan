@@ -27,11 +27,15 @@
         <div class="header-main">
             <div class="container header-main-inner">
                 <div class="header-brand">
-                    <a href="{% url 'catalog:home' %}" class="logo">
-                        <span class="logo-icon">
-                            <svg viewBox="0 0 40 40" fill="none"><rect x="2" y="2" width="36" height="36" rx="4" stroke="currentColor" stroke-width="2"/><path d="M2 10h36M2 20h36M2 30h36M10 2v36M20 2v36M30 2v36" stroke="currentColor" stroke-width="1.5" opacity=".6"/></svg>
+                    <a href="{% url 'catalog:home' %}" class="logo" aria-label="СКС-КАЗАНЬ — сетка кладочная">
+                        <span class="logo-icon" aria-hidden="true">
+                            {% include "includes/logo_icon.html" %}
                         </span>
-                        <span class="logo-text">СКС <span class="accent">Казань</span></span>
+                        <span class="logo-text">
+                            <span class="logo-title">СКС-<span class="accent">КАЗАНЬ</span></span>
+                            <span class="logo-rule"></span>
+                            <span class="logo-subtitle">сетка кладочная</span>
+                        </span>
                     </a>
                     <button class="theme-toggle" id="themeToggle" type="button" aria-label="Сменить фон" title="Сменить фон">
                         <svg class="icon-moon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -78,8 +82,15 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-brand">
-                    <a href="{% url 'catalog:home' %}" class="logo logo-footer">
-                        <span class="logo-text">СКС <span class="accent">Казань</span></span>
+                    <a href="{% url 'catalog:home' %}" class="logo logo-footer" aria-label="СКС-КАЗАНЬ — сетка кладочная">
+                        <span class="logo-icon" aria-hidden="true">
+                            {% include "includes/logo_icon.html" %}
+                        </span>
+                        <span class="logo-text">
+                            <span class="logo-title">СКС-<span class="accent">КАЗАНЬ</span></span>
+                            <span class="logo-rule"></span>
+                            <span class="logo-subtitle">сетка кладочная</span>
+                        </span>
                     </a>
                     <p>Производство металлических сеток. Поставки по всей России.</p>
                 </div>
