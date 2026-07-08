@@ -1,6 +1,6 @@
 /**
  * Interactive 3D product viewers for SKS catalog (Three.js).
- * Types: svarnaya (welded mesh), cpvs (expanded metal), karkasy (rebar cage).
+ * Types: svarnaya (welded mesh), rulonnaya (galvanized roll), polimernaya (polymer-coated roll), cpvs (expanded metal), karkasy (rebar cage).
  */
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
@@ -8,6 +8,8 @@ const SLUG_TO_TYPE = {
     'armaturnye-karkasy': 'karkasy',
     'setka-armaturnaya': 'armaturnaya',
     'setka-cvps': 'cpvs',
+    'setka-rulonnaya': 'rulonnaya',
+    'setka-polimernaya': 'polimernaya',
     'provoloka': 'provoloka',
 };
 
@@ -243,6 +245,118 @@ function createCpvsMesh() {
     return group;
 }
 
+/** Рулонная сварная сетка — цилиндрический рулон с видимой ячейкой */
+function createRollMesh({
+    wireColor = 0xd8e2e8,
+    shadowColor = 0x9facb7,
+    edgeColor = 0xc7d1d8,
+    coreColor = 0x111820,
+    innerRadius = 0.2,
+    fillCore = false,
+} = {}) {
+    const group = new THREE.Group();
+    const wireMat = steelMaterial(wireColor, 0.88, 0.16);
+    const shadowMat = steelMaterial(shadowColor, 0.9, 0.24);
+    const edgeMat = steelMaterial(edgeColor, 0.88, 0.18);
+
+    const length = 1.9;
+    const halfLength = length / 2;
+    const radius = 0.46;
+    const wireR = 0.0038;
+    const thetaCount = 38;
+    const ringCount = 28;
+    const thetaSteps = 64;
+
+    const surfacePoint = (theta, x, r = radius) => [
+        x,
+        Math.cos(theta) * r,
+        Math.sin(theta) * r,
+    ];
+
+    const lengthSegments = [];
+    const ringSegments = [];
+
+    for (let i = 0; i < thetaCount; i++) {
+        const theta = (i / thetaCount) * Math.PI * 2;
+        const matTarget = Math.sin(theta) < -0.25 ? ringSegments : lengthSegments;
+        matTarget.push([surfacePoint(theta, -halfLength), surfacePoint(theta, halfLength)]);
+    }
+
+    for (let xIndex = 0; xIndex <= ringCount; xIndex++) {
+        const x = -halfLength + (xIndex / ringCount) * length;
+        for (let t = 0; t < thetaSteps; t++) {
+            const a = (t / thetaSteps) * Math.PI * 2;
+            const b = ((t + 1) / thetaSteps) * Math.PI * 2;
+            ringSegments.push([surfacePoint(a, x), surfacePoint(b, x)]);
+        }
+    }
+
+    addInstancedBars(group, ringSegments, wireR, shadowMat, 7);
+    addInstancedBars(group, lengthSegments, wireR * 1.05, wireMat, 7);
+
+    [-halfLength, halfLength].forEach((x, index) => {
+        const layerCount = fillCore ? 11 : 5;
+        for (let layer = 0; layer < layerCount; layer++) {
+            const layerRadius = innerRadius + ((radius - innerRadius) * layer) / (layerCount - 1);
+            const ring = new THREE.Mesh(
+                new THREE.TorusGeometry(layerRadius, wireR * (fillCore ? 1.45 : 1.25), 7, 96),
+                layer === layerCount - 1 ? edgeMat : shadowMat,
+            );
+            ring.rotation.y = Math.PI / 2;
+            ring.position.x = x + (index === 0 ? -0.01 : 0.01);
+            group.add(ring);
+        }
+
+        if (fillCore) {
+            const spokeSegments = [];
+            for (let i = 0; i < 30; i++) {
+                const angle = (i / 30) * Math.PI * 2;
+                spokeSegments.push([
+                    [x, Math.cos(angle) * innerRadius * 0.55, Math.sin(angle) * innerRadius * 0.55],
+                    [x, Math.cos(angle) * radius * 0.96, Math.sin(angle) * radius * 0.96],
+                ]);
+            }
+            addInstancedBars(group, spokeSegments, wireR * 1.1, shadowMat, 7);
+        }
+    });
+
+    // Небольшой внутренний просвет делает рулон узнаваемым даже в маленькой карточке.
+    const core = new THREE.Mesh(
+        new THREE.CylinderGeometry(innerRadius * 0.96, innerRadius * 0.96, length + 0.035, 64, 1, true),
+        new THREE.MeshStandardMaterial({
+            color: coreColor,
+            metalness: fillCore ? 0.18 : 0.25,
+            roughness: fillCore ? 0.55 : 0.7,
+            transparent: true,
+            opacity: fillCore ? 0.38 : 0.18,
+            side: THREE.DoubleSide,
+        }),
+    );
+    core.rotation.z = Math.PI / 2;
+    group.add(core);
+
+    group.position.set(0.02, -0.06, 0);
+    group.rotation.x = -0.42;
+    group.rotation.y = -0.52;
+    group.rotation.z = 0.06;
+    return group;
+}
+
+function createGalvanizedRollMesh() {
+    return createRollMesh();
+}
+
+function createPolymerCoatedRollMesh() {
+    return createRollMesh({
+        wireColor: 0x04a85f,
+        shadowColor: 0x013f24,
+        edgeColor: 0x10c876,
+        coreColor: 0x022113,
+        innerRadius: 0.08,
+        fillCore: true,
+    });
+}
+
 /** Плоский арматурный каркас — длинная сварная "лесенка" */
 function createRebarFrame() {
     const group = new THREE.Group();
@@ -382,148 +496,140 @@ function createRebarCage() {
     return group;
 }
 
-/** Арматурная сетка — стопка тяжёлых карт, как на складской фотографии */
+/** Арматурная сетка — одна плоская тяжёлая карта */
 function createRebarMeshStack() {
     const group = new THREE.Group();
-    const barMat = steelMaterial(0x1f2833, 1, 0.28);
-    const sideMat = steelMaterial(0x111820, 1, 0.38);
-    const weldMat = steelMaterial(0x525f6d, 1, 0.18);
+    const mainMat = steelMaterial(0x202a34, 1, 0.24);
+    const crossMat = steelMaterial(0x151d25, 1, 0.32);
+    const weldMat = steelMaterial(0x4b5662, 1, 0.18);
 
     const w = 2.2;
     const d = 1.34;
     const hw = w / 2;
     const hd = d / 2;
-    const layers = 14;
-    const layerGap = 0.038;
-    const rodR = 0.012;
-    const topRodR = 0.014;
-    const xBars = 13;
+    const rodR = 0.018;
+    const crossR = 0.015;
+    const xBars = 12;
     const zBars = 8;
+    const overhang = 0.06;
 
     const mainSegments = [];
-    const sideSegments = [];
+    const crossSegments = [];
     const welds = [];
-    const topLayer = layers - 1;
 
-    for (let l = 0; l < layers; l++) {
-        const y = (l - (layers - 1) / 2) * layerGap;
-        const offsetX = (l % 2) * 0.008;
-        const offsetZ = (l % 3) * 0.006;
-        const target = l > layers - 4 ? mainSegments : sideSegments;
+    for (let i = 0; i < zBars; i++) {
+        const z = -hd + (i / (zBars - 1)) * d;
+        mainSegments.push([[-hw - overhang, 0, z], [hw + overhang, 0, z]]);
+    }
 
-        for (let i = 0; i < xBars; i++) {
-            const z = -hd + (i / (xBars - 1)) * d + offsetZ;
-            const overhang = i === 0 || i === xBars - 1 ? 0.05 : 0.025;
-            target.push([
-                [-hw - overhang + offsetX, y, z],
-                [hw + overhang + offsetX, y, z],
-            ]);
-        }
+    for (let j = 0; j < xBars; j++) {
+        const x = -hw + (j / (xBars - 1)) * w;
+        crossSegments.push([[x, rodR * 1.55, -hd - overhang], [x, rodR * 1.55, hd + overhang]]);
+    }
 
-        for (let j = 0; j < zBars; j++) {
-            const x = -hw + (j / (zBars - 1)) * w + offsetX;
-            const overhang = j === 0 || j === zBars - 1 ? 0.055 : 0.03;
-            target.push([
-                [x, y + rodR * 1.7, -hd - overhang + offsetZ],
-                [x, y + rodR * 1.7, hd + overhang + offsetZ],
-            ]);
-        }
-
-        if (l === topLayer) {
-            for (let i = 0; i < xBars; i++) {
-                const z = -hd + (i / (xBars - 1)) * d + offsetZ;
-                for (let j = 0; j < zBars; j++) {
-                    const x = -hw + (j / (zBars - 1)) * w + offsetX;
-                    welds.push([x, y + rodR * 1.7, z]);
-                }
-            }
+    for (let j = 0; j < xBars; j++) {
+        const x = -hw + (j / (xBars - 1)) * w;
+        for (let i = 0; i < zBars; i++) {
+            const z = -hd + (i / (zBars - 1)) * d;
+            welds.push([x, rodR * 1.55, z]);
         }
     }
 
-    addInstancedBars(group, sideSegments, rodR, sideMat, 9);
-    addInstancedBars(group, mainSegments, topRodR, barMat, 10);
-    addInstancedSpheres(group, welds, topRodR * 1.35, weldMat, 9);
+    addInstancedBars(group, mainSegments, rodR, mainMat, 10);
+    addInstancedBars(group, crossSegments, crossR, crossMat, 10);
+    addInstancedSpheres(group, welds, crossR * 1.35, weldMat, 9);
 
-    const edgeSegments = [];
-    const yBottom = -((layers - 1) / 2) * layerGap - rodR * 1.4;
-    const yTop = ((layers - 1) / 2) * layerGap + rodR * 2.8;
-
-    for (let i = 0; i < xBars; i++) {
-        const z = -hd + (i / (xBars - 1)) * d;
-        edgeSegments.push([[-hw - 0.055, yBottom, z], [-hw - 0.055, yTop, z]]);
-        edgeSegments.push([[hw + 0.055, yBottom, z], [hw + 0.055, yTop, z]]);
-    }
-
-    for (let j = 0; j < zBars; j++) {
-        const x = -hw + (j / (zBars - 1)) * w;
-        edgeSegments.push([[x, yBottom, -hd - 0.055], [x, yTop, -hd - 0.055]]);
-        edgeSegments.push([[x, yBottom, hd + 0.055], [x, yTop, hd + 0.055]]);
-    }
-
-    addInstancedBars(group, edgeSegments, rodR * 0.8, sideMat, 7);
-
-    group.position.set(0.02, -0.08, 0);
-    group.rotation.x = -0.48;
-    group.rotation.y = 0.62;
+    group.position.set(0.02, -0.06, 0);
+    group.rotation.x = -0.52;
+    group.rotation.y = 0.58;
     group.rotation.z = -0.03;
     return group;
 }
 
-/** Вязальная проволока — ровный бублик с отдельными витками */
+/** Вязальная проволока — бухта с открытым центром и наружными стяжками */
 function createWireCoil() {
     const group = new THREE.Group();
-    const wireMat = steelMaterial(0x727a84, 1, 0.36);
-    const strapMat = steelMaterial(0x525860, 1, 0.46);
+    const wireMat = steelMaterial(0x66727c, 1, 0.22);
+    const darkWireMat = steelMaterial(0x242b31, 1, 0.36);
+    const strapMat = steelMaterial(0x4d555d, 1, 0.4);
 
-    const innerR = 0.32;
-    const outerR = 0.78;
-    const wireR = 0.006;
-    const wireCount = 52;
-    const coilHeight = 0.28;
+    const innerR = 0.38;
+    const outerR = 0.88;
+    const wireR = 0.0065;
+    const wireCount = 86;
+    const coilDepth = 0.34;
 
     const ringGeom = new THREE.TorusGeometry(1, wireR, 7, 72);
     const wires = new THREE.InstancedMesh(ringGeom, wireMat, wireCount);
+    const darkWires = new THREE.InstancedMesh(ringGeom, darkWireMat, Math.floor(wireCount * 0.35));
 
     const matrix = new THREE.Matrix4();
     const position = new THREE.Vector3();
     const quaternion = new THREE.Quaternion();
     const scale = new THREE.Vector3();
-    const rotation = new THREE.Euler(Math.PI / 2, 0, 0);
+    const rotation = new THREE.Euler(0, 0, 0.04);
+    const darkRotation = new THREE.Euler(0, 0, -0.06);
 
     for (let i = 0; i < wireCount; i++) {
         const t = i / (wireCount - 1);
-        const majorR = innerR + (outerR - innerR) * t;
-        const y = (t - 0.5) * coilHeight;
+        const layerT = (i % 18) / 17;
+        const bandT = Math.floor(i / 18) / Math.ceil(wireCount / 18);
+        const majorR = innerR + (outerR - innerR) * layerT + Math.sin(i * 1.7) * 0.006;
+        const z = (bandT - 0.5) * coilDepth + Math.sin(i * 0.9) * 0.012;
 
         quaternion.setFromEuler(rotation);
-        position.set(0, y, 0);
+        position.set(0, 0, z);
         scale.set(majorR, majorR, 1);
         matrix.compose(position, quaternion, scale);
         wires.setMatrixAt(i, matrix);
+
+        if (i < Math.floor(wireCount * 0.35)) {
+            quaternion.setFromEuler(darkRotation);
+            position.set(0, 0, z - 0.012);
+            scale.set(majorR * 0.98, majorR * 0.98, 1);
+            matrix.compose(position, quaternion, scale);
+            darkWires.setMatrixAt(i, matrix);
+        }
     }
 
     wires.instanceMatrix.needsUpdate = true;
+    darkWires.instanceMatrix.needsUpdate = true;
+    group.add(darkWires);
     group.add(wires);
 
-    for (let i = 0; i < 3; i++) {
-        const angle = (i / 3) * Math.PI * 2;
+    for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 + 0.26;
+        const nextAngle = angle + 0.38;
         addBar(
             group,
-            [Math.cos(angle) * outerR * 0.96, coilHeight * 0.5, Math.sin(angle) * outerR * 0.96],
-            [Math.cos(angle) * outerR * 0.96, -coilHeight * 0.5, Math.sin(angle) * outerR * 0.96],
-            0.005,
+            [Math.cos(angle) * outerR * 1.03, Math.sin(angle) * outerR * 1.03, coilDepth * 0.55],
+            [Math.cos(nextAngle) * outerR * 1.03, Math.sin(nextAngle) * outerR * 1.03, -coilDepth * 0.55],
+            0.008,
             strapMat,
         );
     }
 
-    group.rotation.x = -0.28;
-    group.rotation.y = 0.25;
+    const innerTieSegments = [];
+    for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2;
+        innerTieSegments.push([
+            [Math.cos(angle) * innerR * 0.76, Math.sin(angle) * innerR * 0.76, -coilDepth * 0.48],
+            [Math.cos(angle + 0.5) * innerR * 0.76, Math.sin(angle + 0.5) * innerR * 0.76, coilDepth * 0.48],
+        ]);
+    }
+    addInstancedBars(group, innerTieSegments, 0.006, strapMat, 7);
+
+    group.rotation.x = 0.04;
+    group.rotation.y = -0.35;
+    group.rotation.z = -0.08;
     return group;
 }
 
 const BUILDERS = {
     svarnaya: createWeldedMesh,
     armaturnaya: createRebarMeshStack,
+    rulonnaya: createGalvanizedRollMesh,
+    polimernaya: createPolymerCoatedRollMesh,
     cpvs: createCpvsMesh,
     karkasy: createRebarFrame,
     'karkas-obemnyy': createRebarCage,
@@ -533,6 +639,8 @@ const BUILDERS = {
 const CAMERA = {
     svarnaya: { pos: [0, 0, 3.6], target: [0, 0, 0] },
     armaturnaya: { pos: [0.2, 0.12, 3.35], target: [0, 0, 0] },
+    rulonnaya: { pos: [0.15, 0.12, 3.2], target: [0, 0, 0] },
+    polimernaya: { pos: [0.15, 0.12, 3.2], target: [0, 0, 0] },
     cpvs: { pos: [0.15, 0.12, 3.7], target: [0, 0.08, 0] },
     karkasy: { pos: [0.18, 0.08, 2.85], target: [0, -0.03, 0] },
     'karkas-obemnyy': { pos: [0.26, 0.16, 3.45], target: [0, 0, 0] },
