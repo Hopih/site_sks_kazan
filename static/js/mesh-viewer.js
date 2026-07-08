@@ -243,48 +243,142 @@ function createCpvsMesh() {
     return group;
 }
 
-/** Арматурный каркас — объёмная 3D-cage из прутков */
-function createRebarFrame(w = 1.7, h = 0.55, d = 1.1) {
+/** Плоский арматурный каркас — длинная сварная "лесенка" */
+function createRebarFrame() {
     const group = new THREE.Group();
-    const barR = 0.022;
-    const mat = steelMaterial(0x9aa3ad, 1, 0.22);
-    const tieMat = steelMaterial(0x858d97, 1, 0.28);
-    const tieR = 0.014;
+    const railMat = steelMaterial(0x9ca5ad, 1, 0.2);
+    const crossMat = steelMaterial(0x7f8892, 1, 0.28);
+    const weldMat = steelMaterial(0xb4bbc2, 1, 0.16);
 
-    const hw = w / 2;
-    const hh = h / 2;
-    const hd = d / 2;
+    const length = 2.45;
+    const halfLength = length / 2;
+    const halfWidth = 0.24;
+    const railR = 0.015;
+    const crossR = 0.012;
+    const crossCount = 15;
+    const crossOverhang = 0.12;
+    const railZ = [-halfWidth, halfWidth];
 
-    const corners = [
-        [-hw, -hh, -hd], [hw, -hh, -hd], [hw, -hh, hd], [-hw, -hh, hd],
-        [-hw, hh, -hd], [hw, hh, -hd], [hw, hh, hd], [-hw, hh, hd],
-    ];
+    const railSegments = [];
+    const crossSegments = [];
+    const welds = [];
 
-    const edges = [
-        [0, 1], [1, 2], [2, 3], [3, 0],
-        [4, 5], [5, 6], [6, 7], [7, 4],
-        [0, 4], [1, 5], [2, 6], [3, 7],
-    ];
-
-    edges.forEach(([a, b]) => addBar(group, corners[a], corners[b], barR, mat));
-
-    const layers = [-hh * 0.5, 0, hh * 0.5];
-    layers.forEach((y) => {
-        addBar(group, [-hw, y, -hd], [hw, y, -hd], tieR, tieMat);
-        addBar(group, [hw, y, -hd], [hw, y, hd], tieR, tieMat);
-        addBar(group, [hw, y, hd], [-hw, y, hd], tieR, tieMat);
-        addBar(group, [-hw, y, hd], [-hw, y, -hd], tieR, tieMat);
-        addBar(group, [-hw, y, -hd], [hw, y, hd], tieR, tieMat);
-        addBar(group, [hw, y, -hd], [-hw, y, hd], tieR, tieMat);
+    railZ.forEach((z) => {
+        railSegments.push([[-halfLength - 0.08, 0, z], [halfLength + 0.08, 0, z]]);
     });
 
-    for (let i = -1; i <= 1; i += 2) {
-        addBar(group, [i * hw * 0.6, -hh, -hd], [i * hw * 0.6, hh, -hd], barR * 0.85, mat);
-        addBar(group, [i * hw * 0.6, -hh, hd], [i * hw * 0.6, hh, hd], barR * 0.85, mat);
+    for (let i = 0; i < crossCount; i++) {
+        const t = i / (crossCount - 1);
+        const x = -halfLength + t * length;
+        const y = (i % 2) * 0.006;
+        crossSegments.push([
+            [x, y + railR * 1.15, -halfWidth - crossOverhang],
+            [x, y + railR * 1.15, halfWidth + crossOverhang],
+        ]);
+
+        railZ.forEach((z) => welds.push([x, y + railR * 1.15, z]));
     }
 
-    group.rotation.x = -0.38;
-    group.rotation.y = 0.45;
+    addInstancedBars(group, railSegments, railR, railMat, 10);
+    addInstancedBars(group, crossSegments, crossR, crossMat, 9);
+    addInstancedSpheres(group, welds, crossR * 1.35, weldMat, 8);
+
+    // Небольшие торцевые выпуски делают каркас похожим на реальный прутковый элемент.
+    addBar(group, [-halfLength - 0.18, 0, -halfWidth], [-halfLength - 0.08, 0, -halfWidth], railR * 0.9, crossMat);
+    addBar(group, [-halfLength - 0.18, 0, halfWidth], [-halfLength - 0.08, 0, halfWidth], railR * 0.9, crossMat);
+    addBar(group, [halfLength + 0.08, 0, -halfWidth], [halfLength + 0.18, 0, -halfWidth], railR * 0.9, crossMat);
+    addBar(group, [halfLength + 0.08, 0, halfWidth], [halfLength + 0.18, 0, halfWidth], railR * 0.9, crossMat);
+
+    group.position.set(0, -0.1, 0);
+    group.rotation.x = -0.5;
+    group.rotation.y = 0.76;
+    group.rotation.z = -0.08;
+    return group;
+}
+
+/** Объёмный арматурный каркас — пространственная решётка для фундамента */
+function createRebarCage() {
+    const group = new THREE.Group();
+    const mainMat = steelMaterial(0x34312d, 1, 0.32);
+    const tieMat = steelMaterial(0x25282a, 1, 0.4);
+    const weldMat = steelMaterial(0x5a5149, 1, 0.24);
+
+    const w = 2.15;
+    const d = 1.15;
+    const h = 0.34;
+    const hw = w / 2;
+    const hd = d / 2;
+    const hh = h / 2;
+    const mainR = 0.013;
+    const tieR = 0.0105;
+    const xCount = 9;
+    const zCount = 7;
+    const overhang = 0.12;
+
+    const mainSegments = [];
+    const tieSegments = [];
+    const welds = [];
+    const levels = [-hh, hh];
+
+    levels.forEach((y, levelIndex) => {
+        for (let zi = 0; zi < zCount; zi++) {
+            const z = -hd + (zi / (zCount - 1)) * d;
+            const offsetY = levelIndex * mainR * 1.8;
+            mainSegments.push([
+                [-hw - overhang, y + offsetY, z],
+                [hw + overhang, y + offsetY, z],
+            ]);
+        }
+
+        for (let xi = 0; xi < xCount; xi++) {
+            const x = -hw + (xi / (xCount - 1)) * w;
+            tieSegments.push([
+                [x, y + mainR * 1.6, -hd - overhang],
+                [x, y + mainR * 1.6, hd + overhang],
+            ]);
+        }
+
+        for (let xi = 0; xi < xCount; xi++) {
+            const x = -hw + (xi / (xCount - 1)) * w;
+            for (let zi = 0; zi < zCount; zi++) {
+                const z = -hd + (zi / (zCount - 1)) * d;
+                welds.push([x, y + mainR * 1.6, z]);
+            }
+        }
+    });
+
+    for (let xi = 0; xi < xCount; xi++) {
+        const x = -hw + (xi / (xCount - 1)) * w;
+        for (let zi = 0; zi < zCount; zi++) {
+            const z = -hd + (zi / (zCount - 1)) * d;
+            const isOuter = xi === 0 || xi === xCount - 1 || zi === 0 || zi === zCount - 1;
+            const target = isOuter ? mainSegments : tieSegments;
+            target.push([[x, -hh, z], [x, hh, z]]);
+        }
+    }
+
+    [-hd, hd].forEach((z) => {
+        for (let row = 1; row <= 2; row++) {
+            const y = -hh + (row / 3) * h;
+            tieSegments.push([[-hw - overhang * 0.6, y, z], [hw + overhang * 0.6, y, z]]);
+        }
+    });
+
+    [-hw, hw].forEach((x) => {
+        for (let row = 1; row <= 2; row++) {
+            const y = -hh + (row / 3) * h;
+            tieSegments.push([[x, y, -hd - overhang * 0.6], [x, y, hd + overhang * 0.6]]);
+        }
+    });
+
+    addInstancedBars(group, tieSegments, tieR, tieMat, 8);
+    addInstancedBars(group, mainSegments, mainR, mainMat, 10);
+    addInstancedSpheres(group, welds, mainR * 1.2, weldMat, 8);
+
+    group.position.set(0.02, -0.1, 0);
+    group.rotation.x = -0.48;
+    group.rotation.y = 0.58;
+    group.rotation.z = -0.02;
     return group;
 }
 
@@ -432,6 +526,7 @@ const BUILDERS = {
     armaturnaya: createRebarMeshStack,
     cpvs: createCpvsMesh,
     karkasy: createRebarFrame,
+    'karkas-obemnyy': createRebarCage,
     provoloka: createWireCoil,
 };
 
@@ -439,7 +534,8 @@ const CAMERA = {
     svarnaya: { pos: [0, 0, 3.6], target: [0, 0, 0] },
     armaturnaya: { pos: [0.2, 0.12, 3.35], target: [0, 0, 0] },
     cpvs: { pos: [0.15, 0.12, 3.7], target: [0, 0.08, 0] },
-    karkasy: { pos: [0.3, 0.2, 3.8], target: [0, 0, 0] },
+    karkasy: { pos: [0.18, 0.08, 2.85], target: [0, -0.03, 0] },
+    'karkas-obemnyy': { pos: [0.26, 0.16, 3.45], target: [0, 0, 0] },
     provoloka: { pos: [0.15, 0.1, 3.3], target: [0, 0, 0] },
 };
 

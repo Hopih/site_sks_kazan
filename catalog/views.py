@@ -1,11 +1,15 @@
 from django.shortcuts import get_object_or_404, render
 from .models import (
+    ARMATURNAYA_PRODUCTS,
+    ARMATURNAYA_SLUG,
     Category,
     KLADOCHNAYA_SLUG,
     Product,
+    CatalogProductCard,
+    armaturnaya_product_cards,
     has_legacy_kladochnaya_category,
+    normalize_catalog_product,
     normalize_kladochnaya_category,
-    normalize_kladochnaya_product,
     visible_categories,
 )
 
@@ -17,7 +21,7 @@ def home(request):
         popular_products = popular_products.exclude(category__slug=KLADOCHNAYA_SLUG)
     popular_products = popular_products[:8]
     for product in popular_products:
-        normalize_kladochnaya_product(product)
+        normalize_catalog_product(product)
 
     return render(request, 'catalog/home.html', {
         'featured_categories': featured_categories,
@@ -27,7 +31,10 @@ def home(request):
 
 def category_detail(request, slug):
     category = normalize_kladochnaya_category(get_object_or_404(Category, slug=slug))
-    products = [normalize_kladochnaya_product(product) for product in category.products.all()]
+    if category.slug == ARMATURNAYA_SLUG:
+        products = armaturnaya_product_cards(category)
+    else:
+        products = [normalize_catalog_product(product) for product in category.products.all()]
     return render(request, 'catalog/category.html', {
         'category': category,
         'products': products,
@@ -35,14 +42,30 @@ def category_detail(request, slug):
     })
 
 def product_detail(request, category_slug, slug):
+    if category_slug == ARMATURNAYA_SLUG:
+        category = get_object_or_404(Category, slug=category_slug)
+        specs = {item_slug: (name, is_popular) for item_slug, name, is_popular in ARMATURNAYA_PRODUCTS}
+        if slug in specs:
+            name, is_popular = specs[slug]
+            product = CatalogProductCard(category, slug, name, is_popular)
+            related_products = [item for item in armaturnaya_product_cards(category) if item.slug != slug]
+            return render(request, 'catalog/product.html', {
+                'product': product,
+                'related_products': related_products,
+                'breadcrumbs': [
+                    {'label': category.name, 'url': category.get_absolute_url()},
+                    {'label': product.name},
+                ],
+            })
+
     product = get_object_or_404(
         Product.objects.select_related('category'),
         category__slug=category_slug,
         slug=slug,
     )
-    normalize_kladochnaya_product(product)
+    normalize_catalog_product(product)
     related_products = [
-        normalize_kladochnaya_product(related)
+        normalize_catalog_product(related)
         for related in Product.objects.filter(category=product.category).exclude(pk=product.pk)[:4]
     ]
     return render(request, 'catalog/product.html', {

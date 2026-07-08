@@ -102,19 +102,21 @@ PRODUCTS = {
         ('cpvs-1x10-20x20', 'Сетка ЦПВС 1×10 м, ячейка 20×20 мм', False),
     ],
     'setka-dorozhnaya': [
-        ('setka-dorozhnaya-100x100', 'Сетка дорожная 100×100×4, карта 2×3', True),
-        ('setka-dorozhnaya-150x150', 'Сетка дорожная 150×150×5, карта 2×3', False),
+        ('setka-dorozhnaya-100x100', 'Сетка дорожная 100×100, карта 2×3', True),
+        ('setka-dorozhnaya-150x150', 'Сетка дорожная 150×150, карта 2×3', False),
     ],
     'setka-armaturnaya': [
-        ('setka-armaturnaya-150x150', 'Сетка арматурная 150×150×5, карта 2×6', True),
+        ('setka-armaturnaya-100x100', 'Сетка арматурная 100×100, карта 2×6', True),
+        ('setka-armaturnaya-150x150', 'Сетка арматурная 150×150, карта 2×6', True),
+        ('setka-armaturnaya-200x200', 'Сетка арматурная 200×200, карта 2×6', False),
     ],
     'armaturnye-karkasy': [
-        ('karkas-ploskiy-6x6', 'Каркас плоский 6×6 м, Ø12', False),
+        ('karkas-ploskiy-6x6', 'Каркас плоский 6×6 м', False),
         ('karkas-obemnyy-fundament', 'Каркас объёмный для фундамента', False),
     ],
     'provoloka': [
-        ('provoloka-vyazalnaya-12', 'Проволока вязальная Ø1,2 мм', False),
-        ('provoloka-vyazalnaya-16', 'Проволока вязальная Ø1,6 мм', False),
+        ('provoloka-vyazalnaya-12', 'Проволока вязальная', False),
+        ('provoloka-vyazalnaya-16', 'Проволока вязальная', False),
     ],
 }
 

@@ -5,6 +5,12 @@ import re
 
 KLADOCHNAYA_LEGACY_SLUG = 'setka-svarnaya'
 KLADOCHNAYA_SLUG = 'setka-kladochnaya'
+ARMATURNAYA_SLUG = 'setka-armaturnaya'
+ARMATURNAYA_PRODUCTS = [
+    ('setka-armaturnaya-100x100', 'Сетка арматурная 100×100, карта 2×6', True),
+    ('setka-armaturnaya-150x150', 'Сетка арматурная 150×150, карта 2×6', True),
+    ('setka-armaturnaya-200x200', 'Сетка арматурная 200×200, карта 2×6', False),
+]
 
 
 def normalize_kladochnaya_category(category):
@@ -52,6 +58,64 @@ def normalize_kladochnaya_product(product):
     return product
 
 
+def normalize_armaturnaya_product(product):
+    if not product or getattr(getattr(product, 'category', None), 'slug', None) != ARMATURNAYA_SLUG:
+        return product
+
+    product.name = re.sub(r'(Сетка арматурная\s+\d+×\d+)×\d+', r'\1', product.name)
+    return product
+
+
+def remove_diameter_from_product(product):
+    if not product:
+        return product
+
+    name = product.name
+    name = re.sub(r'\s*ВР-1', '', name)
+    name = re.sub(r',?\s*Ø\s*[\d,]+(?:\s*мм)?', '', name)
+    name = re.sub(r'(Сетка\s+(?:дорожная|арматурная)\s+\d+×\d+)×[\d,]+', r'\1', name)
+    name = re.sub(r'(Сетка\s+(?:сварная\s+)?кладочная\s+\d+×\d+)×[\d,]+', r'\1', name)
+    name = re.sub(r'(\d+×\d+)\s+карта', r'\1, карта', name)
+    name = re.sub(r'\s+,', ',', name)
+    name = re.sub(r'\s{2,}', ' ', name).strip(' ,')
+    product.name = name
+    return product
+
+
+def normalize_catalog_product(product):
+    normalize_kladochnaya_product(product)
+    normalize_armaturnaya_product(product)
+    remove_diameter_from_product(product)
+    return product
+
+
+class CatalogProductCard:
+    def __init__(self, category, slug, name, is_popular=False):
+        self.category = category
+        self.slug = slug
+        self.name = name
+        self.is_popular = is_popular
+        self.description = ''
+        self.preview_image = ''
+
+    def get_absolute_url(self):
+        return reverse('catalog:product', kwargs={
+            'category_slug': self.category.slug,
+            'slug': self.slug,
+        })
+
+    @property
+    def mesh_type(self):
+        return self.category.mesh_type
+
+
+def armaturnaya_product_cards(category):
+    return [
+        CatalogProductCard(category, slug, name, is_popular)
+        for slug, name, is_popular in ARMATURNAYA_PRODUCTS
+    ]
+
+
 class Category(models.Model):
     name = models.CharField('Название', max_length=200)
     slug = models.SlugField('URL', unique=True)
@@ -84,7 +148,7 @@ class Category(models.Model):
             return 'karkasy'
         if self.slug == 'setka-cvps':
             return 'cpvs'
-        if self.slug == 'setka-armaturnaya':
+        if self.slug == ARMATURNAYA_SLUG:
             return 'armaturnaya'
         if self.slug == 'provoloka':
             return 'provoloka'
@@ -110,6 +174,12 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def mesh_type(self):
+        if self.category.slug == 'armaturnye-karkasy' and self.slug == 'karkas-obemnyy-fundament':
+            return 'karkas-obemnyy'
+        return self.category.mesh_type
 
     def get_absolute_url(self):
         return reverse('catalog:product', kwargs={'category_slug': self.category.slug, 'slug': self.slug})
